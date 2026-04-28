@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model Employee {
+  id            String   @id @default(cuid())
+  name          String
+  hcmEmployeeId String   @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  balances     LeaveBalance[]
+  requests     TimeOffRequest[]
+  reservations Reservation[]
+}
+
+model LeaveBalance {
+  id           String   @id @default(cuid())
+  employeeId   String
+  leaveType    String
+  hcmBalance   Float
+  reservedDays Float    @default(0)
+  version      Int      @default(1)
+  lastSyncedAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, leaveType])
+}
+
+model TimeOffRequest {
+  id            String        @id @default(cuid())
+  employeeId    String
+  requestedDays Float
+  startDate     DateTime
+  endDate       DateTime
+  status        RequestStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  reservation Reservation?
+
+  @@index([employeeId])
+}
+
+model Reservation {
+  id         String   @id @default(cuid())
+  requestId  String   @unique
+  employeeId String
+  daysHeld   Float
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  request  TimeOffRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  employee Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model IdempotencyKey {
+ id String @id
+ endpoint String
+ requestHash String
+ responseBody String
+ createdAt DateTime @default(now())
+}
+
+model OutboxEvent {
+ id String @id @default(cuid())
+ aggregateId String
+ eventType String
+ payload String
+ processed Boolean @default(false)
+ createdAt DateTime @default(now())
+}
