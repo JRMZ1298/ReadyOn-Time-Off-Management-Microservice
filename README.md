@@ -199,7 +199,7 @@ POST  /time-off/balances/reconcile
 ## Clonar repositorio
 
 ```bash
-git clone https://github.com/tuusuario/readyon-timeoff.git
+git clone https://github.com/JRMZ1298/ReadyOn-Time-Off-Management-Microservice.git
 cd readyon-timeoff
 ```
 
